@@ -1,0 +1,3 @@
+shell==1.0.1
+LogrusFormatter==0.1a0
+PyGithub==1.43.5
