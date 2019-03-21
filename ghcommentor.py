@@ -3,6 +3,8 @@ import sys
 import logging
 import argparse
 import itertools
+import requests
+import json
 from shell import shell
 from github import Github
 from logrusformatter import LogrusFormatter
@@ -12,8 +14,32 @@ from logrusformatter import LogrusFormatter
 Login stuff
 """
 global gh_token, jira_token, g
-gh_token = "YOUR AWESOME TOKEN HERE"
+# Github
+gh_token = "YOUR FANTASTIC GH TOKEN HERE"
+# Jira
+jira_username = "firstname.lastname@docker.com"
+jira_token = "YOUR FANTASTIC JIRA TOKEN HERE"
+# ---
 g = Github(gh_token)
+
+"""
+getRemoteLink returns the GH issue associated with the given jira issue
+specified as repository and issue number, for example:
+- repository: 'FIELD'
+- issue: '347'
+"""
+def getRemoteLink(jira_repository, jira_issue):
+    r = requests.get('https://docker.atlassian.net/rest/api/2/issue/{0}-{1}/remotelink'.format(jira_repository, jira_issue),
+                   auth=(
+                        '{0}'.format(jira_username),
+                        '{0}'.format(jira_token)
+                       )
+                )
+    # Get the github url
+    response_json = json.loads(r.text)
+    gh_url = response_json[0]["object"]["url"]
+    gh_issue_number = gh_url.split('/')[-1]
+    return gh_issue_number
 
 
 """
@@ -25,7 +51,7 @@ def generateComments(gh_repository, jira_repository, max_range):
     repo = g.get_repo(gh_repository)
     for jira_issue in range(1, max_range):
         # Get the Github issue associated with the jira_issue
-        gh_issue_number = shell('./jira view {0}-{1}'.format(jira_repository, jira_issue)).output()
+        gh_issue_number = getRemoteLink(jira_repository, jira_issue)
         try:
             # If there's no github issue associated continue to the next
             # jira_issue
