@@ -55,11 +55,12 @@ def generateComments(gh_repository, jira_repository, max_range):
         try:
             # If there's no github issue associated continue to the next
             # jira_issue
-            len(gh_issue_number[0])
-        except IndexError:
+            if len(gh_issue_number) == 0:
+                continue
+        except NameError:
             continue
-        logging.info("Generating comment in GH issue: {0} to associate it with {1}-{2}".format(gh_issue_number[0], jira_repository, jira_issue))
-        issue = repo.get_issue(int(gh_issue_number[0]))
+        logging.info("Generating comment in GH issue: {0} to associate it with {1}-{2}".format(gh_issue_number, jira_repository, jira_issue))
+        issue = repo.get_issue(int(gh_issue_number))
         try:
             issue.create_comment("This issue has moved to Jira.  The new issue can be found here: https://docker.atlassian.net/browse/{0}-{1}.".format(jira_repository, jira_issue))
         except github.GithubException.GithubException as e:
